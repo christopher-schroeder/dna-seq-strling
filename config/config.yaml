@@ -1,0 +1,23 @@
+samples: config/samples.tsv
+
+
+ref:
+  # Number of chromosomes to consider for calling.
+  # The first n entries of the FASTA will be considered.
+  n_chromosomes: 25
+  # Ensembl species name
+  species: homo_sapiens
+  # Ensembl release
+  release: 100
+  # Genome build
+  build: GRCh38
+  # Ensembl release to use for SnpEff annotation (sometimes, the latest Ensembl release is not available in SnpEff)
+  snpeff_release: 86
+
+annotations:
+  vep:
+    params: ""
+    plugins: ""
+      # Add any plugin from https://www.ensembl.org/info/docs/tools/vep/script/vep_plugins.html
+      # Plugin args can be passed as well, e.g. "LoFtool,path/to/custom/scores.txt".
+      #- LoFtool

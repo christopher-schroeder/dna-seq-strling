@@ -1,0 +1,8 @@
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - strling=0.5
+  - statsmodels=0.12.1
+  - scipy=1.5.2
+  - numpy=1.19.2
