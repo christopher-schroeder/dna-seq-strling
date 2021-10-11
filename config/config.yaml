@@ -21,3 +21,6 @@ annotations:
       # Add any plugin from https://www.ensembl.org/info/docs/tools/vep/script/vep_plugins.html
       # Plugin args can be passed as well, e.g. "LoFtool,path/to/custom/scores.txt".
       #- LoFtool
+  genehancer:
+    # ONLY ACTIVATE IF YOU HAVE EXPLICIT PERMISSION TO USE GENEHANCER
+    activate: true

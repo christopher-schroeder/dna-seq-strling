@@ -14,7 +14,7 @@ wildcard_constraints:
 
 rule get_vep_cache:
     output:
-        directory("resources/vep/cache")
+        directory("results/resources/vep/cache")
     params:
         species=config["ref"]["species"],
         build=config["ref"]["build"],
@@ -23,21 +23,6 @@ rule get_vep_cache:
         "logs/vep/cache.log"
     wrapper:
         "0.59.2/bio/vep/cache"
-
-rule get_genome:
-    output:
-        "resources/genome.fasta"
-    log:
-        "logs/get-genome.log"
-    params:
-        species=config["ref"]["species"],
-        datatype="dna",
-        build=config["ref"]["build"],
-        release=config["ref"]["release"]
-    cache: True
-    wrapper:
-        "0.59.2/bio/reference/ensembl-sequence"
-
 
 
 def get_group_samples(group):
@@ -62,7 +47,7 @@ def get_vep_threads():
 
 rule get_vep_plugins:
     output:
-        directory("resources/vep/plugins")
+        directory("results/resources/vep/plugins")
     params:
         release=config["ref"]["release"]
     log:

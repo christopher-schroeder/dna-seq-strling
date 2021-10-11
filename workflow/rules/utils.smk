@@ -1,6 +1,6 @@
 rule download_genehancer:
     input:
-        fai="resources/genome.fasta.fai"
+        fai="results/resources/genome.fasta.fai"
     output:
         "results/resources/genehancer.tsv"
     params:
@@ -10,3 +10,12 @@ rule download_genehancer:
     cache: True
     script:
         "../scripts/dl_genehancer.py"
+
+
+rule index_bcf:
+    input:
+        "{x}.bcf"
+    output:
+        "{x}.bcf.csi"
+    shell:
+        "bcftools index {input}"

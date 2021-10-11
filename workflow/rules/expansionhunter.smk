@@ -2,7 +2,7 @@ rule expansionhunter:
     input:
         bam=get_bam,
         bai=get_bai,
-        reference="resources/genome.fasta",
+        reference="results/resources/genome.fasta",
         catalogue="results/eh/catalogue/catalogue.json"
     output:
         json="results/eh/calls/{sample}.json",

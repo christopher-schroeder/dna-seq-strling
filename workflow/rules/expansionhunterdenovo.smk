@@ -44,8 +44,8 @@ rule ehdn_merge:
         case=["results/ehdn/profiles/{sample}.str_profile.json"],
         control=lambda w: expand("results/ehdn/profiles/{sample}.str_profile.json", sample=set(samples.sample_name) - set(get_group_samples(samples.loc[w.sample].group))),
         manifest="results/ehdn/manifests/{sample}.json",
-        reference="resources/genome.fasta",
-        fai="resources/genome.fasta.fai",
+        reference="results/resources/genome.fasta",
+        fai="results/resources/genome.fasta.fai",
     output:
         merged="results/ehdn/merged/{sample}.multisample_profile.json"
     params:
@@ -79,7 +79,7 @@ rule ehdn_profile:
     input:
         bam=get_bam,
         bai=get_bai,
-        reference="resources/genome.fasta"
+        reference="results/resources/genome.fasta"
     output:
         "results/ehdn/profiles/{sample}.str_profile.json",
         "results/ehdn/profiles/{sample}.locus.tsv",

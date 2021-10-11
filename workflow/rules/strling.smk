@@ -13,39 +13,6 @@
 #     shell:
 #         "cat {input.vcf} | vembrane filter \"{params.expression}\" > {output.vcf} 2> {log}" #"1-10**(-INFO['PROB_DENOVO']/10)"
 
-#
-
-# rule snpeff:
-#     input:
-#         calls="results/strling/vcf/{group}/{group}.all.bcf",
-#         db="resources/snpeff/GRCh38.86"
-#     output:
-#         calls="results/strling/vcf/{group}/{group}.all.annotated.bcf",
-#         stats="results/strling/snpeff/{group}.html",
-#         csvstats="results/strling/snpeff/{group}.csv"
-#     log:
-#         "logs/snpeff/{group}.log"
-#     params:
-#         extra="-nodownload"
-#     resources:
-#         mem_mb=4000
-#     wrapper:
-#         "0.68.0/bio/snpeff/annotate"
-
-
-# rule snpeff_download:
-#     output:
-#         # wildcard {reference} may be anything listed in `snpeff databases`
-#         directory("resources/snpeff/GRCh38.86")
-#     log:
-#         "logs/snpeff/download/GRCh38.86.log"
-#     params:
-#         reference="GRCh38.86"
-#     resources:
-#         mem_mb=4096
-#     wrapper:
-#         "0.68.0/bio/snpeff/download"
-
 
 rule visualize:
     input:
@@ -83,15 +50,6 @@ rule merge_bcf:
         command=merge_command
     shell:
         "{params.command} {input.bcf} | bcftools norm -m -both > {output}"
-
-
-rule index_bcf:
-    input:
-        "{x}.bcf"
-    output:
-        "{x}.bcf.csi"
-    shell:
-        "bcftools index {input}"
 
 
 rule vcf_to_bcf:
@@ -151,8 +109,8 @@ rule strling_call:
         bam=get_bam,
         bai=get_bai,
         bin="results/strling/extract/{sample}.bin",
-        reference="resources/genome.fasta",
-        fai="resources/genome.fasta.fai",
+        reference="results/resources/genome.fasta",
+        fai="results/resources/genome.fasta.fai",
         bounds="results/strling/merge/{group}-bounds.txt"
     output:
         bounds="results/strling/call/{group}/{sample}-bounds.txt",
@@ -171,8 +129,8 @@ rule strling_call:
 rule strling_merge:
     input:
         bins=lambda w: expand("results/strling/extract/{sample}.bin", sample=get_group_samples(w.group)),
-        reference="resources/genome.fasta",
-        fai="resources/genome.fasta.fai",
+        reference="results/resources/genome.fasta",
+        fai="results/resources/genome.fasta.fai",
     output:
         bounds="results/strling/merge/{group}-bounds.txt"
     params:
@@ -212,5 +170,9 @@ rule strling_index:
         "../envs/strling.yaml"
     log:
         "logs/strling/index/genome.log"
+    cache: True
     shell:
         "strling index {input.reference} 2> {log}"
+
+
+ruleorder: strling_index > genome_faidx
