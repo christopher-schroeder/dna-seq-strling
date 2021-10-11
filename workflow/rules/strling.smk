@@ -18,9 +18,14 @@ rule visualize:
     input:
         bcf="results/strling/vcf/{group}/{group}.all.annotated.bcf"
     output:
-        "results/strling/plots/{group}.pdf"
+        report(
+            directory("results/strling/plots/{group}"),
+            patterns=["{chrom}-{left}-{right}-{motif}.pdf"],
+            caption="../report/plots.rst",
+            category="STR plots",
+        ),
     shell:
-        "python workflow/scripts/visualize.py {input.bcf} {output}"
+        "python workflow/scripts/visualize_single.py {input.bcf} {output}"
 
 
 def merge_command(wc):

@@ -19,7 +19,8 @@ include: "rules/ref.smk"
 
 rule all:
     input:
-        "results/strling/vcf/TOC-SAL-DAV/TOC-SAL-DAV.all.annotated.bcf"
+        "results/strling/plots/TOC-SAL-DAV"
+        # "results/strling/vcf/TOC-SAL-DAV/TOC-SAL-DAV.all.annotated.bcf"
         #expand("results/strling/plots/{group}.pdf", group="TOC-SAL-DAV"), #group=groups_no_control
         #expand("results/strling/tables/{group}/{group}.xlsx", group=groups_no_control)
 
