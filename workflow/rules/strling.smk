@@ -35,7 +35,7 @@ rule annotate_quantile:
         genotypes=lambda wc: expand("results/strling/call/{{group}}/{sample}-genotype.txt", sample=set(samples.sample_name) - set(get_group_samples(wc.group))),
         bcf="results/strling/vcf/{group}/{group}.all.bcf"
     output:
-        "results/strling/vcf/{group}/{group}.all.annotated.bcf"
+        "results/strling/vcf/{group}/{group}.all.q.bcf"
     shell:
         "bcftools view {input.bcf} | python workflow/scripts/annotate_quantiles2.py {input.genotypes} | bcftools view -Ob > {output}"
 

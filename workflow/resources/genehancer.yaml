@@ -1,0 +1,13 @@
+annotation:
+    file: "results/resources/genehancer.tsv"
+    columns:
+      chrom: "chrom"
+      start: "chromStart"
+      stop: "chromEnd"
+    values:
+    - value:
+        vcf_name: "genehancer_elementType"
+        number: "1"
+        description: "Element type from genehancer."
+        type: "String"
+        expression: "DATA['elementType']"

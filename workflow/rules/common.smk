@@ -1,4 +1,5 @@
 import glob
+import pandas as pd
 
 samples = pd.read_csv(config["samples"], sep="\t", comment='#', dtype={"sample_name": str, "bam": str, "group":str}).set_index("sample_name", drop=False).sort_index()
 groups = samples["group"].unique()
@@ -12,6 +13,16 @@ wildcard_constraints:
     sample="|".join(samples["sample_name"]),
 
 
+def get_annotations_extra(wildcards, input):
+    if annotations:
+        custom_str = " ".join(f"--custom {path},{prefix},vcf,exact,,{','.join(ann['fields'])}" for (prefix, ann), path in zip(annotations, input.annotations))
+        config_str = config["annotations"]["vep"]["params"]
+        additional_str = "--vcf_info_field ANN --hgvsg"
+        return f"{custom_str} {config_str} {additional_str}"
+    else:
+        return ""
+
+
 rule get_vep_cache:
     output:
         directory("results/resources/vep/cache")
@@ -22,7 +33,18 @@ rule get_vep_cache:
     log:
         "logs/vep/cache.log"
     wrapper:
-        "0.59.2/bio/vep/cache"
+        "0.78.0/bio/vep/cache"
+
+
+rule get_vep_plugins:
+    output:
+        directory("results/resources/vep/plugins")
+    params:
+        release=config["ref"]["release"]
+    log:
+        "logs/vep/plugins.log"
+    wrapper:
+        "0.78.0/bio/vep/plugins"
 
 
 def get_group_samples(group):
@@ -45,17 +67,6 @@ def get_vep_threads():
         return 1
 
 
-rule get_vep_plugins:
-    output:
-        directory("results/resources/vep/plugins")
-    params:
-        release=config["ref"]["release"]
-    log:
-        "logs/vep/plugins.log"
-    wrapper:
-        "0.59.2/bio/vep/plugins"
-
-
 rule link_bai:
     input:
         "{x}.bai"
@@ -63,3 +74,11 @@ rule link_bai:
         "{x}.bam.bai"
     shell:
         "ln -sr {input} {output}"
+
+
+def get_vep_threads():
+    n = len(samples)
+    if n:
+        return max(workflow.cores / n, 1)
+    else:
+        return 1
