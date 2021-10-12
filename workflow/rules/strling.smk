@@ -13,14 +13,13 @@
 #     shell:
 #         "cat {input.vcf} | vembrane filter \"{params.expression}\" > {output.vcf} 2> {log}" #"1-10**(-INFO['PROB_DENOVO']/10)"
 
-
 rule visualize:
     input:
         bcf="results/strling/vcf/{group}/{group}.all.annotated.bcf"
     output:
         report(
             directory("results/strling/plots/{group}"),
-            patterns=["{chrom}-{left}-{right}-{motif}.pdf"],
+            patterns=["{chrom}-{left}-{right}-{motif}-{gene}.pdf"],
             caption="../report/plots.rst",
             category="STR plots",
         ),

@@ -1,10 +1,10 @@
 def vembrane_expression(wc):
     samples = get_group_samples(wc.group)
-    header = "index, chrom, pos, alt, region, gene, feature, distance, q1, q90, q95, q99"
+    header = "index, chrom, pos, alt, region, gene, feature, distance"
     sample_header = expand("a1_{S}, a2_{S}, q_{S}", S=map(lambda s: s.replace("-", "_"), samples))
     header = ", ".join([header] + sample_header)
 
-    expression = "INDEX, CHROM, POS, ALT[0], ANN['Annotation'], ANN['Gene_Name'], ANN['Feature_ID'], ANN['Distance'], INFO['Q1'], INFO['Q90'], INFO['Q95'], INFO['Q99']"
+    expression = "INDEX, CHROM, POS, ALT[0], CSQ['Consequence'], CSQ['SYMBOL'], CSQ['Feature'], CSQ['DISTANCE']"
     sample_expression = expand("FORMAT['A1']['{S}'], FORMAT['A2']['{S}'], FORMAT['QV']['{S}']", S=samples)
     expression = ", ".join([expression] + sample_expression)
 
@@ -15,7 +15,11 @@ rule vembrane_table:
     input:
         bcf="results/strling/vcf/{group}/{group}.all.annotated.filtered.bcf",
     output:
-        tsv="results/strling/tables/{group}/{group}.tsv"
+        tsv=report(
+            "results/strling/tables/{group}/{group}.tsv",
+            caption="../report/table.rst",
+            category="{group}",
+        )
     conda:
         "../envs/vembrane.yaml"
     params:
@@ -23,7 +27,7 @@ rule vembrane_table:
     log:
         "logs/vembrane-table/{group}.log"
     shell:
-        "bcftools norm -m-any {input} | vembrane table --header \"{params.expression[0]}\" \"{params.expression[1]}\" - > {output.tsv} 2> {log}"
+        "bcftools norm -m-any {input} | vembrane table -k CSQ --header \"{params.expression[0]}\" \"{params.expression[1]}\" - > {output.tsv} 2> {log}"
 
 
 rule vembrane_filter:

@@ -21,7 +21,7 @@ args = parser.parse_args()
 
 fs = 12  # fontsize
 
-PlotData = namedtuple("PlotData", "chrom, left, right, motif, values, samples")
+PlotData = namedtuple("PlotData", "chrom, left, right, motif, gene, values, samples")
 Sample = namedtuple("Sample", "est1, est2, qv")
 plotdata = []
 
@@ -47,7 +47,12 @@ with pysam.VariantFile(args.vcf) as f:
         if min_q_value > 0.1:
             continue
 
-        plotdata.append(PlotData(entry.chrom, entry.pos, entry.stop, entry.alts[0], values, tuple(samples)))
+        CSQ = entry.info["CSQ"][0]
+        Allele, Consequence, IMPACT, SYMBOL, Gene, Feature_type, Feature, BIOTYPE, EXON, INTRON, HGVSc, HGVSp, cDNA_position, CDS_position, Protein_position, Amino_acids, Codons, Existing_variation, DISTANCE, STRAND, FLAGS, SYMBOL_SOURCE, HGNC_ID = CSQ.split("|")
+
+        SYMBOL = "_"
+
+        plotdata.append(PlotData(entry.chrom, entry.pos, entry.stop, entry.alts[0], SYMBOL, values, tuple(samples)))
 
 #plotdata = plotdata[0:18]
 
@@ -87,6 +92,4 @@ for i, d in enumerate(plotdata):
     #fig.tight_layout()
     plt.gca().add_artist(legend1)
     plt.tight_layout()
-    plt.savefig(os.path.join(args.out, f"{d.chrom}-{d.left}-{d.right}-{d.motif}.pdf"))
-
-# 0.6
+    plt.savefig(os.path.join(args.out, f"{d.chrom}-{d.left}-{d.right}-{d.motif}-{d.gene}.pdf"))

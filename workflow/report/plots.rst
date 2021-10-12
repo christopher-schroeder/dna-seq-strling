@@ -1,1 +1,1 @@
-Just a test
+Distribution of STR length for motif {{ snakemake.wildcards.motif }}.

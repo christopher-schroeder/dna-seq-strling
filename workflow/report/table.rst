@@ -1,0 +1,1 @@
+Tab seperated table of all detected STR expansions for group {{ snakemake.wildcards.group }} with q-value < 0.01.
