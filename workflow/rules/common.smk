@@ -6,12 +6,18 @@ groups = samples["group"].unique()
 
 groups_no_control = groups[groups != "control"]
 samples_no_control = samples[samples["group"] != "control"]
-
+experiments = config["experiments"]
 
 wildcard_constraints:
     group="|".join(samples["group"].unique()),
     sample="|".join(samples["sample_name"]),
+    experiment="|".join(experiments)
 
+datatype = "dna"
+species = config["ref"]["species"]
+build = config["ref"]["build"]
+release = config["ref"]["release"]
+genome = f"resources/genome.{datatype}.{species}.{build}.{release}.fasta"
 
 def get_annotations_extra(wildcards, input):
     if annotations:
@@ -51,12 +57,24 @@ def get_group_samples(group):
     return samples.loc[samples["group"] == group]["sample_name"]
 
 
+def get_experiment_samples(experiment, case=True, control=True):
+    groups = []
+    if case:
+        groups += config["experiments"][experiment]["case"]
+    if control:
+        groups += config["experiments"][experiment]["control"]
+    return samples.loc[samples["group"].isin(groups)]["sample_name"]
+
+
 def get_bam(wc):
     return samples.loc[wc.sample, "bam"]
 
 
 def get_bai(wc):
-    return samples.loc[wc.sample, "bam"] + ".bai"
+    sample = samples.loc[wc.sample, "bam"]
+    if sample.endswith(".cram"):
+        return sample + ".crai"
+    return sample + ".bai"
 
 
 def get_vep_threads():

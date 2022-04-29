@@ -1,10 +1,10 @@
 def vembrane_expression(wc):
-    samples = get_group_samples(wc.group)
+    samples = get_experiment_samples(wc.experiment, case=True, control=False)
     header = "index, chrom, pos, alt, region, gene, feature, distance"
     sample_header = expand("a1_{S}, a2_{S}, q_{S}", S=map(lambda s: s.replace("-", "_"), samples))
     header = ", ".join([header] + sample_header)
 
-    expression = "INDEX, CHROM, POS, ALT[0], CSQ['Consequence'], CSQ['SYMBOL'], CSQ['Feature'], CSQ['DISTANCE']"
+    expression = "INDEX, CHROM, POS, ALT, CSQ['Consequence'], CSQ['SYMBOL'], CSQ['Feature'], CSQ['DISTANCE']"
     sample_expression = expand("FORMAT['A1']['{S}'], FORMAT['A2']['{S}'], FORMAT['QV']['{S}']", S=samples)
     expression = ", ".join([expression] + sample_expression)
 
@@ -13,34 +13,34 @@ def vembrane_expression(wc):
 
 rule vembrane_table:
     input:
-        bcf="results/strling/vcf/{group}/{group}.all.annotated.filtered.bcf",
+        bcf="results/strling/vcf/{experiment}/{experiment}.all.annotated.filtered.bcf",
     output:
         tsv=report(
-            "results/strling/tables/{group}/{group}.tsv",
+            "results/strling/tables/{experiment}/{experiment}.tsv",
             caption="../report/table.rst",
-            category="{group}",
+            category="STR tables",
         )
     conda:
         "../envs/vembrane.yaml"
     params:
         expression=vembrane_expression
     log:
-        "logs/vembrane-table/{group}.log"
+        "logs/vembrane-table/{experiment}.log"
     shell:
         "bcftools norm -m-any {input} | vembrane table -k CSQ --header \"{params.expression[0]}\" \"{params.expression[1]}\" - > {output.tsv} 2> {log}"
 
 
 rule vembrane_filter:
     input:
-        bcf="results/strling/vcf/{group}/{group}.all.annotated.bcf",
+        bcf="results/strling/vcf/{experiment}/{experiment}.all.annotated.bcf",
     output:
-        bcf="results/strling/vcf/{group}/{group}.all.annotated.filtered.bcf",
+        bcf="results/strling/vcf/{experiment}/{experiment}.all.annotated.filtered.bcf",
     conda:
         "../envs/vembrane.yaml"
     params:
         expression="any(FORMAT['QV'][s] <= 0.1 for s in SAMPLES)"
     log:
-        "logs/vembrane-table/{group}.log"
+        "logs/vembrane-table/{experiment}.log"
     shell:
         "bcftools norm -m-any {input} | vembrane filter \"{params.expression}\" > {output}"
 

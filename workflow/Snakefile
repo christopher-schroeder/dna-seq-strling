@@ -16,11 +16,13 @@ include: "rules/ref.smk"
 # for group in groups_no_control:
 #     targets.extend(expand("results/strling/vcf/{group}/{group}.all.annotated.bcf", group=[group]))
 
-
 rule all:
     input:
-        "results/strling/tables/TOC-SAL-DAV/TOC-SAL-DAV.tsv",
-        "results/strling/vcf/TOC-SAL-DAV/TOC-SAL-DAV.all.annotated.filtered.bcf"
+        expand("results/strling/plots/{experiment}", experiment=experiments),
+        expand("results/strling/tables/{experiment}/{experiment}.tsv", experiment=experiments)
+        
+        # "results/strling/tables/TOC-SAL-DAV/TOC-SAL-DAV.tsv",
+        # "results/strling/vcf/TOC-SAL-DAV/TOC-SAL-DAV.all.annotated.filtered.bcf"
         # "results/strling/vcf/TOC-SAL-DAV/TOC-SAL-DAV.all.annotated.bcf"
         #expand("results/strling/plots/{group}.pdf", group="TOC-SAL-DAV"), #group=groups_no_control
         #expand("results/strling/tables/{group}/{group}.xlsx", group=groups_no_control)
@@ -28,4 +30,4 @@ rule all:
 
 rule only_bai_linking:
     input:
-        expand("{x}.bai", x=samples["bam"])
+        expand("results/strling/plots/{experiment}", experiment=experiments)

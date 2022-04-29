@@ -15,20 +15,23 @@
 
 rule visualize:
     input:
-        bcf="results/strling/vcf/{group}/{group}.all.annotated.bcf"
+        bcf="results/strling/vcf/{experiment}/{experiment}.all.annotated.bcf"
     output:
         report(
-            directory("results/strling/plots/{group}"),
+            directory("results/strling/plots/{experiment}"),
             patterns=["{chrom}-{left}-{right}-{motif}-{gene}.pdf"],
             caption="../report/plots.rst",
             category="STR plots",
+            subcategory="{experiment}",
         ),
+    conda:
+        "../envs/visualize.yaml"
     shell:
         "python workflow/scripts/visualize_single.py {input.bcf} {output}"
 
 
 def merge_command(wc):
-    if len(get_group_samples(wc.group)) == 1:
+    if len(get_experiment_samples(wc.experiment)) == 1:
         return "cat"
     else:
         return "bcftools merge -m none -Ob"
@@ -36,20 +39,20 @@ def merge_command(wc):
 
 rule annotate_quantile:
     input:
-        genotypes=lambda wc: expand("results/strling/call/{{group}}/{sample}-genotype.txt", sample=set(samples.sample_name) - set(get_group_samples(wc.group))),
-        bcf="results/strling/vcf/{group}/{group}.all.bcf"
+        genotypes=lambda wc: expand("results/strling/call/{{experiment}}/{sample}-genotype.txt", sample=get_experiment_samples(wc.experiment, case=False, control=True)),
+        bcf="results/strling/vcf/{experiment}/{experiment}.all.bcf"
     output:
-        "results/strling/vcf/{group}/{group}.all.q.bcf"
+        "results/strling/vcf/{experiment}/{experiment}.all.q.bcf"
     shell:
         "bcftools view {input.bcf} | python workflow/scripts/annotate_quantiles2.py {input.genotypes} | bcftools view -Ob > {output}"
 
 
 rule merge_bcf:
     input:
-        bcf=lambda wc: expand("results/strling/vcf/{{group}}/{sample}.bcf", sample=get_group_samples(wc.group)),
-        index=lambda wc: expand("results/strling/vcf/{{group}}/{sample}.bcf.csi", sample=get_group_samples(wc.group))
+        bcf=lambda wc: expand("results/strling/vcf/{{experiment}}/{sample}.bcf", sample=get_experiment_samples(wc.experiment, case=True, control=False)),
+        index=lambda wc: expand("results/strling/vcf/{{experiment}}/{sample}.bcf.csi", sample=get_experiment_samples(wc.experiment, case=True, control=False))
     output:
-        "results/strling/vcf/{group}/{group}.all.bcf"
+        "results/strling/vcf/{experiment}/{experiment}.all.bcf"
     params:
         command=merge_command
     shell:
@@ -58,19 +61,20 @@ rule merge_bcf:
 
 rule vcf_to_bcf:
     input:
-        vcf="{x}.vcf"
+        vcf="results/strling/vcf/{experiment}/{sample}.vcf"
     output:
-        bcf="{x}.bcf"
+        bcf="results/strling/vcf/{experiment}/{sample}.bcf"
     shell:
         "bcftools sort -Ob {input.vcf} | bcftools norm -Ob -m-any > {output.bcf}"
 
 
 rule strling_to_vcf:
     input:
-        tsv="results/strling/outlier/{group}/{sample}.STRs.tsv"
+        tsv="results/strling/outlier/{experiment}/"
     output:
-        vcf="results/strling/vcf/{group}/{sample}.vcf"
+        vcf="results/strling/vcf/{experiment}/{sample}.vcf"
     params:
+        tsv = "results/strling/outlier/{experiment}/{sample}.STRs.tsv",
         samplename = "{sample}"
     script:
         "../scripts/strling_to_vcf.py"
@@ -88,13 +92,15 @@ rule strling_to_vcf:
 
 rule strling_outlier:
     input:
-        genotype=expand("results/strling/call/{{group}}/{sample}-genotype.txt", sample=samples.sample_name),
-        unplaced=expand("results/strling/call/{{group}}/{sample}-unplaced.txt", sample=samples.sample_name)
+        genotype=lambda wc: expand("results/strling/call/{{experiment}}/{sample}-genotype.txt", sample=get_experiment_samples(wc.experiment, case=True, control=True)),
+        unplaced=lambda wc: expand("results/strling/call/{{experiment}}/{sample}-unplaced.txt", sample=get_experiment_samples(wc.experiment, case=True, control=True)),
     output:
-        outliers=expand("results/strling/outlier/{{group}}/{sample}.STRs.tsv", sample=samples.sample_name),
-        unplaced="results/strling/outlier/{group}/unplaced.tsv"
+        outliers=directory("results/strling/outlier/{experiment}"),
+        unplaced="results/strling/outlier/{experiment}/unplaced.tsv"
+    conda:
+        "../envs/strling.yaml"
     params:
-        prefix="results/strling/outlier/{group}/"
+        prefix="results/strling/outlier/{experiment}/"
     shell:
         "strling-outliers.py --genotypes {input.genotype} --unplaced {input.unplaced} --out {params.prefix}"
 
@@ -113,47 +119,47 @@ rule strling_call:
         bam=get_bam,
         bai=get_bai,
         bin="results/strling/extract/{sample}.bin",
-        reference="results/resources/genome.fasta",
-        fai="results/resources/genome.fasta.fai",
-        bounds="results/strling/merge/{group}-bounds.txt"
+        reference=genome,
+        fai=genome + ".fai",
+        bounds="results/strling/merge/{experiment}-bounds.txt"
     output:
-        bounds="results/strling/call/{group}/{sample}-bounds.txt",
-        genotype="results/strling/call/{group}/{sample}-genotype.txt",
-        unplaced="results/strling/call/{group}/{sample}-unplaced.txt",
+        bounds="results/strling/call/{experiment}/{sample}-bounds.txt",
+        genotype="results/strling/call/{experiment}/{sample}-genotype.txt",
+        unplaced="results/strling/call/{experiment}/{sample}-unplaced.txt",
     params:
-        prefix="results/strling/call/{group}/{sample}"
+        prefix="results/strling/call/{experiment}/{sample}"
     conda:
         "../envs/strling.yaml"
     log:
-        "logs/strling/call/{group}/{sample}.log"
+        "logs/strling/call/{experiment}/{sample}.log"
     shell:
-        "strling call -f {input.reference} -b {input.bounds} -o {params.prefix} {input.bam} {input.bin} 2> {log}"
+        "/vol/nano/christo/STRling/strling call -f {input.reference} -b {input.bounds} -o {params.prefix} {input.bam} {input.bin} 2> {log}"
 
 
 rule strling_merge:
     input:
-        bins=lambda w: expand("results/strling/extract/{sample}.bin", sample=get_group_samples(w.group)),
-        reference="results/resources/genome.fasta",
-        fai="results/resources/genome.fasta.fai",
+        bins=lambda w: expand("results/strling/extract/{sample}.bin", sample=get_experiment_samples(w.experiment, case=True, control=False)),
+        reference=genome,
+        fai=genome + ".fai",
     output:
-        bounds="results/strling/merge/{group}-bounds.txt"
+        bounds="results/strling/merge/{experiment}-bounds.txt"
     params:
-        prefix="results/strling/merge/{group}"
+        prefix="results/strling/merge/{experiment}"
     conda:
         "../envs/strling.yaml"
     log:
-        "logs/strling/merge/{group}.log"
+        "logs/strling/merge/{experiment}.log"
     shell:
-        "strling merge -f {input.reference} -o {params.prefix} {input.bins} 2> {log}"
+        "/vol/nano/christo/STRling/strling merge -f {input.reference} -o {params.prefix} {input.bins} 2> {log}"
 
 
 rule strling_extract:
     input:
         bam=get_bam,
         bai=get_bai,
-        reference="resources/genome.fasta",
-        fai="resources/genome.fasta.fai",
-        index="resources/genome.fasta.str" # optional
+        reference=genome,
+        fai=genome + ".fai",
+        index=genome + ".str"
     output:
         bin="results/strling/extract/{sample}.bin",
     conda:
@@ -161,22 +167,22 @@ rule strling_extract:
     log:
         "logs/strling/extract/{sample}.log"
     shell:
-        "strling extract -f {input.reference} -g {input.index} {input.bam} {output.bin} 2> {log}"
+        "/vol/nano/christo/STRling/strling extract -f {input.reference} -g {input.index} {input.bam} {output.bin} 2> {log}"
 
 
 rule strling_index:
     input:
-        reference="resources/genome.fasta"
+        reference=genome
     output:
-        "resources/genome.fasta.str",
-        "resources/genome.fasta.fai",
+        str_index=genome + ".str",
+        # genome + ".fai",
     conda:
         "../envs/strling.yaml"
     log:
         "logs/strling/index/genome.log"
     cache: True
     shell:
-        "strling index {input.reference} 2> {log}"
+        "/vol/nano/christo/STRling/strling index {input.reference} -g {output.str_index} 2> {log}"
 
 
 ruleorder: strling_index > genome_faidx

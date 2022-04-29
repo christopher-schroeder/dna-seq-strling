@@ -1,13 +1,13 @@
 rule get_genome:
     output:
-        "results/resources/genome.fasta"
+        genome,
     log:
-        "logs/get-genome.log"
+        "logs/get-genome.log",
     params:
         species=config["ref"]["species"],
         datatype="dna",
         build=config["ref"]["build"],
-        release=config["ref"]["release"]
+        release=config["ref"]["release"],
     cache: True
     wrapper:
         "0.59.2/bio/reference/ensembl-sequence"
@@ -15,11 +15,11 @@ rule get_genome:
 
 rule genome_faidx:
     input:
-        "results/resources/genome.fasta"
+        genome,
     output:
-        "results/resources/genome.fasta.fai"
+        f"{genome}.fai",
     log:
-        "logs/genome-faidx.log"
+        "logs/genome-faidx.log",
     cache: True
     wrapper:
         "0.59.2/bio/samtools/faidx"
@@ -27,11 +27,11 @@ rule genome_faidx:
 
 rule genome_dict:
     input:
-        "results/resources/genome.fasta"
+        genome,
     output:
-        "results/resources/genome.dict"
+        "resources/genome.dict",
     log:
-        "logs/samtools/create_dict.log"
+        "logs/samtools/create_dict.log",
     conda:
         "../envs/samtools.yaml"
     cache: True

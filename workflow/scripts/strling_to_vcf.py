@@ -243,7 +243,7 @@ def convert(filename, fileoutput, samplename):
 # args = parser.parse_args()
 # convert(args.filename, "/dev/stdout", args.samplename)
 
-filename = snakemake.input.tsv
+filename = snakemake.params.tsv
 fileoutput = snakemake.output.vcf
 samplename = snakemake.params.samplename
 convert(filename, fileoutput, samplename)
