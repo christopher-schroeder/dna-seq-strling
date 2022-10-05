@@ -93,6 +93,14 @@ rule link_bai:
     shell:
         "ln -sr {input} {output}"
 
+rule link_crai:
+    input:
+        "{x}.crai"
+    output:
+        "{x}.cram.crai"
+    shell:
+        "ln -sr {input} {output}"
+
 
 def get_vep_threads():
     n = len(samples)
@@ -100,3 +108,20 @@ def get_vep_threads():
         return max(workflow.cores / n, 1)
     else:
         return 1
+
+
+rule vcf_to_bcf_sample:
+    input:
+        vcf="results/strling/vcf/{experiment}/{sample}.vcf"
+    output:
+        bcf="results/strling/vcf/{experiment}/{sample}.bcf"
+    shell:
+        "bcftools sort -Ob {input.vcf} | bcftools norm -Ob -m-any > {output.bcf}"
+
+rule vcf_to_bcf_ehdn_experiment:
+    input:
+        vcf="results/ehdn/final/{type}/{experiment}.vcf"
+    output:
+        bcf="results/ehdn/final/{type}/{experiment}.bcf"
+    shell:
+        "bcftools sort -Ob {input.vcf} | bcftools norm -Ob -m-any > {output.bcf}"

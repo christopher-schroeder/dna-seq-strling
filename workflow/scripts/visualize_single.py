@@ -21,7 +21,7 @@ args = parser.parse_args()
 
 fs = 12  # fontsize
 
-PlotData = namedtuple("PlotData", "chrom, left, right, motif, gene, values, samples")
+PlotData = namedtuple("PlotData", "chrom, left, right, motif, gene, consequence, values, samples")
 Sample = namedtuple("Sample", "est1, est2, qv")
 plotdata = []
 
@@ -34,8 +34,15 @@ with pysam.VariantFile(args.vcf) as f:
         if len(entry.alts[0]) < 3:
             continue
 
-        values = [z for x in entry.info["CONTROLS"] if not math.isnan(z:=float(x))]
+        if not(entry.qual == None or entry.qual == "." or entry.qual > 0):
+            continue
 
+        if "CONTROLS" in entry.info:
+            values = [z for x in entry.info["CONTROLS"] if not math.isnan(z:=float(x))]
+        else:
+            values = [0]
+
+        # print(entry.info.keys())
         samples = []
         min_q_value = 1
         for j in range(len(entry.samples)):
@@ -43,16 +50,14 @@ with pysam.VariantFile(args.vcf) as f:
             if qv is not None:
                 min_q_value = min(min_q_value, qv)
             samples.append(Sample(est1, est2, qv))
-
-        if min_q_value > 0.1:
+        if min_q_value > 0.1 and entry.qual == ".":
             continue
 
         CSQ = entry.info["CSQ"][0]
-        Allele, Consequence, IMPACT, SYMBOL, Gene, Feature_type, Feature, BIOTYPE, EXON, INTRON, HGVSc, HGVSp, cDNA_position, CDS_position, Protein_position, Amino_acids, Codons, Existing_variation, DISTANCE, STRAND, FLAGS, SYMBOL_SOURCE, HGNC_ID = CSQ.split("|")
 
-        SYMBOL = "_"
-
-        plotdata.append(PlotData(entry.chrom, entry.pos, entry.stop, entry.alts[0], SYMBOL, values, tuple(samples)))
+        Allele, consequence, IMPACT, SYMBOL, Gene, Feature_type, Feature, BIOTYPE, EXON, INTRON, HGVSc, HGVSp, cDNA_position, CDS_position, Protein_position, Amino_acids, Codons, Existing_variation, DISTANCE, STRAND, FLAGS, SYMBOL_SOURCE, HGNC_ID = CSQ.split("|")
+        consequence = ", ".join(map(lambda c: c.rsplit("_",1)[0], consequence.split("&")))
+        plotdata.append(PlotData(entry.chrom, entry.pos, entry.stop, entry.alts[0], SYMBOL, consequence, values, tuple(samples)))
 
 #plotdata = plotdata[0:18]
 
@@ -65,13 +70,19 @@ for i, d in enumerate(plotdata):
     #sns.swarmplot(x=[1] * len(d.values), y=d.values, ax=ax, color="black", size=1.9)
     sns.violinplot(y=d.values, widths=0.3, showmeans=True, showextrema=True, showmedians=True, ax=ax, orient="v", linewidth=0, saturation=0.7, color="slategrey")
 
-    for j, s in enumerate(d.samples):
-        if s.est1 is not None:
-            sns.lineplot(x=[-1, 0], y=[s.est1, s.est1], marker='o', markers=True, ax=ax, color=palette[j])
-        if s.est2 is not None:
-            sns.lineplot(x=[0, 1], y=[s.est2, s.est2], marker='o', markers=True, ax=ax, color=palette[j], label="{:.2f}".format(float(s.qv)))
+    draw_count = 0
 
-    # ax.set_title(f'{d.chrom}:{d.left}-{d.right}\n{d.motif}', fontsize=fs)
+    for j, s in enumerate(d.samples):
+        drawn = False
+        if s.est1 is not None:
+            sns.lineplot(x=[-0.3, 0], y=[s.est1, s.est1], marker='o', markers=True, ax=ax, color=palette[j])
+            plt.text(-0.35, s.est1, sample_names[j], horizontalalignment="right", color=palette[j])
+
+        if s.est2 is not None:
+            sns.lineplot(x=[0, 0.3], y=[s.est2, s.est2], marker='o', markers=True, ax=ax, color=palette[j], label=f"{float(s.qv):.2f}, {sample_names[j]}")
+            plt.text(0.35, s.est2, sample_names[j], horizontalalignment="left", color=palette[j])
+
+    ax.set_title(f'{d.chrom}:{d.left}-{d.right}, {d.motif}\n{d.consequence}, {d.gene}', fontsize=fs)
     ax.tick_params(axis='both', which='both', labelsize=10)
     ax.yaxis.set_tick_params(labelbottom=True)
     ax.legend(loc="upper left")
@@ -81,15 +92,24 @@ for i, d in enumerate(plotdata):
 
     lines = [Line2D([0], [0], color=c, linewidth=1.5, linestyle='-') for c in palette]
 
-    legend1 = plt.legend(loc=2, title="q-values")
+    # legend1 = plt.legend(loc=2, title="q-values")
 
     #l4 = fig.legend(["1","2","3"], ncol=3 )
     # leg = fig.legend(lines, sample_names, loc="right", mode="expand")
-    plt.legend(lines, sample_names, loc='upper left', bbox_to_anchor=(1.0, 1.0), fancybox=False, shadow=False, ncol=1, title=f'{d.chrom}:{d.left}-{d.right}\n{d.motif}')
+
+    # plt.legend(lines, sample_names, loc='upper left', bbox_to_anchor=(1.0, 1.0), fancybox=False, shadow=False, ncol=1, title=f'{d.chrom}:{d.left}-{d.right}\n{d.motif}')
+
     # plt.subplots_adjust(hspace=0.4, left=0.05, right=0.95, top=1 - (0.4 / nrows), bottom=0.2 / nrows)
-    #plt.margins(x=0, y=0)
+    # plt.margins(x=0, y=0)
     #leg.set_in_layout(True)
-    #fig.tight_layout()
-    plt.gca().add_artist(legend1)
-    plt.tight_layout()
+    fig.tight_layout()
+
+    # plt.gca().add_artist(legend1)
+
+    # plt.tight_layout()
+    fig.set_size_inches(5, 8)
     plt.savefig(os.path.join(args.out, f"{d.chrom}-{d.left}-{d.right}-{d.motif}-{d.gene}.pdf"))
+    plt.close()
+    # print(i)
+    # if i > 10:
+    #     exit()

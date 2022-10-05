@@ -202,3 +202,141 @@ experiments:
       - aicardi_1875
       - aicardi_2125
       - aicardi_2410
+  aurora:
+    case:
+      - aurora
+    control:
+      - ilaria
+      - control
+      - TOC-SAL-DAV
+      - fame
+      - tremor
+      - 62672645_s6
+      - bur
+      - dan
+      - aicardi_1480
+      - aicardi_1875
+      - aicardi_2125
+      - aicardi_2410
+      - E21-0561
+      - E20-0566
+      - E18-0675
+      - E21-0052
+      - PED-SAL-BOU
+      - expand_1
+  expand_1:
+    case:
+      - expand_1
+    control:
+      - ilaria
+      - control
+      - TOC-SAL-DAV
+      - fame
+      - tremor
+      - 62672645_s6
+      - bur
+      - dan
+      - aicardi_1480
+      - aicardi_1875
+      - aicardi_2125
+      - aicardi_2410
+      - E21-0561
+      - E20-0566
+      - E18-0675
+      - E21-0052
+      - PED-SAL-BOU
+      - aurora
+  ilaria:
+    case:
+      - ilaria
+    control:
+      - control
+      - TOC-SAL-DAV
+      - fame
+      - tremor
+      - 62672645_s6
+      - bur
+      - dan
+      - aicardi_1480
+      - aicardi_1875
+      - aicardi_2125
+      - aicardi_2410
+      - E21-0561
+      - E20-0566
+      - E18-0675
+      - E21-0052
+      - PED-SAL-BOU
+      - aurora
+      - expand_1
+  tuebingen:
+    case:
+      - tuebingen
+    control:
+      - control
+      - TOC-SAL-DAV
+      - fame
+      - tremor
+      - 62672645_s6
+      - bur
+      - dan
+      - aicardi_1480
+      - aicardi_1875
+      - aicardi_2125
+      - aicardi_2410
+      - E21-0561
+      - E20-0566
+      - E18-0675
+      - E21-0052
+      - PED-SAL-BOU
+      - aurora
+      - expand_1
+      - expand_2
+      - sgt24
+  sgt24:
+    case:
+      - sgt24
+    control:
+      - control
+      - TOC-SAL-DAV
+      - fame
+      - tremor
+      - 62672645_s6
+      - bur
+      - dan
+      - aicardi_1480
+      - aicardi_1875
+      - aicardi_2125
+      - aicardi_2410
+      - E21-0561
+      - E20-0566
+      - E18-0675
+      - E21-0052
+      - PED-SAL-BOU
+      - aurora
+      - expand_1
+      - expand_2
+      - tuebingen
+  expand_2:
+    case:
+      - expand_2
+    control:
+      - control
+      - TOC-SAL-DAV
+      - fame
+      - tremor
+      - 62672645_s6
+      - bur
+      - dan
+      - aicardi_1480
+      - aicardi_1875
+      - aicardi_2125
+      - aicardi_2410
+      - E21-0561
+      - E20-0566
+      - E18-0675
+      - E21-0052
+      - PED-SAL-BOU
+      - aurora
+      - expand_1
+      - sgt24
+      - tuebingen
