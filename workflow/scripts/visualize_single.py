@@ -85,8 +85,12 @@ for i, d in enumerate(plotdata):
     ax.set_title(f'{d.chrom}:{d.left}-{d.right}, {d.motif}\n{d.consequence}, {d.gene}', fontsize=fs)
     ax.tick_params(axis='both', which='both', labelsize=10)
     ax.yaxis.set_tick_params(labelbottom=True)
-    ax.legend(loc="upper left")
+    ax.legend(loc="upper left", bbox_to_anchor=(1, 1))
     ax.set_xlim([-1, 1])
+
+
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.75, box.height])
 
     plt.setp(ax.get_yticklabels(), visible=True)
 
@@ -102,14 +106,15 @@ for i, d in enumerate(plotdata):
     # plt.subplots_adjust(hspace=0.4, left=0.05, right=0.95, top=1 - (0.4 / nrows), bottom=0.2 / nrows)
     # plt.margins(x=0, y=0)
     #leg.set_in_layout(True)
-    fig.tight_layout()
+    # fig.tight_layout()
 
     # plt.gca().add_artist(legend1)
-
+    fig.set_size_inches(10, 14)
     # plt.tight_layout()
-    fig.set_size_inches(5, 8)
+    plt.margins(0.0, tight=True)
     plt.savefig(os.path.join(args.out, f"{d.chrom}-{d.left}-{d.right}-{d.motif}-{d.gene}.pdf"))
     plt.close()
+
     # print(i)
     # if i > 10:
     #     exit()

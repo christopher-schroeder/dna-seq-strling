@@ -4,7 +4,7 @@ def vembrane_expression(wc):
     sample_header = expand("a1_{S}, a2_{S}, q_{S}", S=map(lambda s: s.replace("-", "_"), samples))
     header = ", ".join([header] + sample_header)
 
-    expression = "INDEX, CHROM, POS, ALT, CSQ['Consequence'], CSQ['SYMBOL'], CSQ['Feature'], CSQ['DISTANCE'], 10**(-QUAL/10), INFO['Q1'], INFO['Q90'], INFO['Q95'], INFO['Q99']"
+    expression = "INDEX, CHROM, POS, ALT, CSQ['Consequence'], CSQ['SYMBOL'], CSQ['Feature'], CSQ['DISTANCE'], 0, INFO['Q1'], INFO['Q90'], INFO['Q95'], INFO['Q99']" #10**(-QUAL/10)
     sample_expression = expand("FORMAT['A1']['{S}'], FORMAT['A2']['{S}'], FORMAT['QV']['{S}']", S=samples)
     expression = ", ".join([expression] + sample_expression)
     return header, expression

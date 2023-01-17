@@ -1,12 +1,19 @@
 import glob
 import pandas as pd
+import os
+import yaml
 
 samples = pd.read_csv(config["samples"], sep="\t", comment='#', dtype={"sample_name": str, "bam": str, "group":str}).set_index("sample_name", drop=False).sort_index()
 groups = samples["group"].unique()
 
 groups_no_control = groups[groups != "control"]
 samples_no_control = samples[samples["group"] != "control"]
-experiments = config["experiments"]
+experiments = dict()
+
+for filename in glob.glob("config/experiments/*.yaml"):
+    name = os.path.basename(filename)[:-len(".yaml")]
+    with open(filename, "r") as stream:
+        experiments[name] = yaml.safe_load(stream)
 
 wildcard_constraints:
     group="|".join(samples["group"].unique()),
@@ -58,12 +65,12 @@ def get_group_samples(group):
 
 
 def get_experiment_samples(experiment, case=True, control=True):
-    groups = []
+    case_samples, control_samples = [], []
     if case:
-        groups += config["experiments"][experiment]["case"]
+        case_samples = experiments[experiment]["samples"]["case"]
     if control:
-        groups += config["experiments"][experiment]["control"]
-    return samples.loc[samples["group"].isin(groups)]["sample_name"]
+        control_samples = experiments[experiment]["samples"]["control"]
+    return case_samples + control_samples
 
 
 def get_bam(wc):

@@ -6,16 +6,6 @@ def merge_command(wc):
         return "bcftools merge -m none -Ob"
 
 
-rule annotate_quantile:
-    input:
-        genotypes=lambda wc: expand("results/strling/call/{{experiment}}/{sample}-genotype.txt", sample=get_experiment_samples(wc.experiment, case=False, control=True)),
-        bcf="results/strling/vcf-experiment/outlier/{experiment}.merged.bcf"
-    output:
-        "results/strling/vcf-experiment/outlier/{experiment}.quantile.bcf"
-    shell:
-        "bcftools view {input.bcf} | python workflow/scripts/annotate_quantiles2.py {input.genotypes} | bcftools view -Ob > {output}"
-
-
 rule merge_bcf:
     input:
         bcf=  lambda wc: expand("results/strling/vcf/{{experiment}}/{sample}.bcf", sample=get_experiment_samples(wc.experiment, case=True, control=False)),

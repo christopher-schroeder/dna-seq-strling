@@ -22,8 +22,8 @@ rule all:
     input:
         # expand("results/ehdn/profiles/{sample}.str_profile.json", sample=samples["sample_name"]),
         # expand("results/ehdn/plots/outlier/{experiment}", experiment=experiments),
-        # expand("results/strling/plots/outlier/{experiment}", experiment=experiments),
-        expand("results/ehdn/tables/outlier/{experiment}.tsv", experiment=experiments),
+        expand("results/strling/plots/outlier/{experiment}", experiment=experiments),
+        expand("results/strling/tables/outlier/{experiment}.tsv", experiment=experiments),
         # expand("results/strling/tables/outlier/{experiment}.tsv", experiment=experiments),
         # expand("results/ehdn/tables/outlier/{experiment}.tsv", experiment=experiments)
         

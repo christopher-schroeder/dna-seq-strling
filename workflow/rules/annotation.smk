@@ -26,16 +26,24 @@ rule vembrane_filter:
     conda:
         "../envs/vembrane.yaml"
     params:
-        expression="10**(-QUAL/10) <= 0.1 or any(FORMAT['QV'][s] <= 0.1 for s in SAMPLES)"
+        expression="(QUAL and 10**(-QUAL/10) <= 0.1) or any(FORMAT['QV'][s] <= 0.1 for s in SAMPLES)"
     log:
         "logs/vembrane-table/{caller}/{type}/{experiment}.log"
     shell:
         "bcftools norm -m-any {input} | vembrane filter \"{params.expression}\" > {output}"
 
 
+rule annotate_quantile:
+    input:
+        "results/{caller}/vcf-experiment/{type}/{experiment}.vep.filtered.bcf"
+    output:
+        "results/{caller}/vcf-experiment/{type}/{experiment}.quantile.bcf"
+    script:
+        "../scripts/annotate_quantiles.py"
+
 rule just_copy:
     input:
-        "results/{caller}/vcf-experiment/{type}/{experiment}.vep.filtered.bcf",
+        "results/{caller}/vcf-experiment/{type}/{experiment}.quantile.bcf",
     output:
         calls=report(
             "results/{caller}/final/{type}/{experiment}.bcf",
